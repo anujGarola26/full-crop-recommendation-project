@@ -14,12 +14,6 @@ function Profile() {
     memberSince: "",
   });
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadUserData();
-    loadStats();
-  }, [loadUserData ]);
-
   const loadUserData = () => {
     const userData = JSON.parse(localStorage.getItem("user"));
     if (userData) {
@@ -37,6 +31,12 @@ function Profile() {
       navigate("/login");
     }
   };
+
+  useEffect(() => {
+    loadUserData();
+    loadStats();
+  }, [loadUserData ]);
+
 
   const loadStats = async () => {
     try {

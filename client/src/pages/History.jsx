@@ -13,11 +13,6 @@ function History() {
   const navigate = useNavigate();
 
   // Component mount hote hi history fetch karo
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
-
-  // Backend se predictions fetch karo
   const fetchHistory = async () => {
     try {
       const response = await predictionAPI.getHistory();
@@ -32,6 +27,12 @@ function History() {
       }
     }
   };
+  
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  // Backend se predictions fetch karo
 
   // Filter logic - selected filter ke basis par predictions filter karo
   const filteredPredictions = predictions.filter(pred => 
