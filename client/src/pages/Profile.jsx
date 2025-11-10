@@ -18,7 +18,7 @@ function Profile() {
   useEffect(() => {
     loadUserData();
     loadStats();
-  }, []);
+  }, [loadUserData ]);
 
   const loadUserData = () => {
     const userData = JSON.parse(localStorage.getItem("user"));

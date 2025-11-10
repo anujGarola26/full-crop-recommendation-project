@@ -15,7 +15,7 @@ function History() {
   // Component mount hote hi history fetch karo
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory]);
 
   // Backend se predictions fetch karo
   const fetchHistory = async () => {
