@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 
-// CORS Configuration (robust, safe)
+// -- CORS robust config
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:3000'];
@@ -24,27 +24,25 @@ app.use(cors({
   },
   credentials: true
 }));
-
-// Preflight (OPTIONS) requests
 app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
+// MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cropdb')
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// Routes import
+// Import routes
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/prediction');
 
-// Routes
+// Route usage
 app.use('/api/auth', authRoutes);
 app.use('/api/prediction', predictionRoutes);
 
-// Home route (for health check)
+// Root + health
 app.get('/', (req, res) => {
   res.json({
     message: '🌾 Crop Recommendation API',
@@ -52,8 +50,6 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
@@ -62,7 +58,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handler for all unhandled errors
+// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -72,7 +68,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Catch-all route (must be last, NO star/wildcard in path argument)
+// 404 catch-all (must be last, NO star path)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -80,7 +76,6 @@ app.use((req, res) => {
   });
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
