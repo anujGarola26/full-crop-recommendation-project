@@ -10,10 +10,31 @@ dotenv.config();
 const app = express();
 
 // Middleware
+// app.use(cors({
+//   origin: process.env.CORS_ORIGIN,
+//   credentials: true // if using cookies/auth
+// }));
+
+// CORS Configuration (Improved)
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
-  credentials: true // if using cookies/auth
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
