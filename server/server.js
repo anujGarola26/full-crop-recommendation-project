@@ -9,22 +9,14 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Middleware
-// app.use(cors({
-//   origin: process.env.CORS_ORIGIN,
-//   credentials: true // if using cookies/auth
-// }));
-
-// CORS Configuration (Improved)
-const allowedOrigins = process.env.CORS_ORIGIN 
+// ----- IMPROVED CORS MIDDLEWARE -----
+const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:3000'];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like Postman, mobile apps, etc.)
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -34,62 +26,64 @@ app.use(cors({
   credentials: true
 }));
 
+// PRE-FLIGHT SOLUTION (OPTIONS requests)
 app.options('*', cors());
 
+// Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database Connection
+// ----- DATABASE CONNECTION -----
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cropdb')
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// Import Routes (ONLY ONCE HERE)
+// ----- ROUTES -----
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/prediction');
 
-// Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/prediction', predictionRoutes);
 
 // Root route
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: '🌾 Crop Recommendation API',
     status: 'Server is running!',
     timestamp: new Date().toISOString()
   });
 });
 
-// Health check route
+// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'OK',
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    time: new Date().toISOString()
   });
 });
 
-// Error handling middleware
+// ----- ERROR MIDDLEWARE (for unhandled errors) -----
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     success: false,
     message: 'Something went wrong!',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-// 404 handler
+// ----- 404 HANDLER (at last, catch-all fallback) -----
 app.use((req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     success: false,
     message: 'Route not found'
   });
 });
 
-// Start server
+// ----- START SERVER -----
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log('Environment:', process.env.NODE_ENV || 'development');
 });
