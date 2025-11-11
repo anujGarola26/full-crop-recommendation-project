@@ -6,17 +6,16 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
-// Initialize Express app
 const app = express();
 
-// ----- IMPROVED CORS MIDDLEWARE -----
+// CORS Configuration (Improved)
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:3000'];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // Allow non-browser clients (Postman etc.)
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -26,22 +25,22 @@ app.use(cors({
   credentials: true
 }));
 
-// PRE-FLIGHT SOLUTION (OPTIONS requests)
+// Preflight (OPTIONS) requests for all routes
 app.options('*', cors());
 
-// Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ----- DATABASE CONNECTION -----
+// Database Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cropdb')
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// ----- ROUTES -----
+// Import Routes
 const authRoutes = require('./routes/auth');
 const predictionRoutes = require('./routes/prediction');
 
+// Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/prediction', predictionRoutes);
 
@@ -54,7 +53,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check
+// Health check route
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
@@ -63,7 +62,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ----- ERROR MIDDLEWARE (for unhandled errors) -----
+// Global Error Handler (for unexpected errors)
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -73,7 +72,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ----- 404 HANDLER (at last, catch-all fallback) -----
+// 404 catch-all (must be last middleware)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -81,7 +80,6 @@ app.use((req, res) => {
   });
 });
 
-// ----- START SERVER -----
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
